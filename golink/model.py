@@ -10,7 +10,7 @@ NAME_RE = re.compile(r'[a-zA-Z0-9-_]+')
 VALID_SCHEMES = {'http', 'https'}
 
 
-def valid_name(name):
+def validate_name(name):
     """Validate a Golink name."""
     if not name:
         raise ValueError('Name is required')
@@ -19,7 +19,7 @@ def valid_name(name):
         raise ValueError('Name must match {}'.format(NAME_RE.pattern))
 
 
-def valid_url(url):
+def validate_url(url):
     """Validate a Golink URL."""
     if not url:
         raise ValueError('URL is required')
@@ -34,8 +34,8 @@ def valid_url(url):
 @attr.s
 class Golink:
     """A Golink."""
-    name = attr.ib(validator=lambda _, __, v: valid_name(v))
-    url = attr.ib(validator=lambda _, __, v: valid_url(v))
+    name = attr.ib(validator=lambda _, __, v: validate_name(v))
+    url = attr.ib(validator=lambda _, __, v: validate_url(v))
 
     def with_suffix(self, suffix=''):
         base_url = urlsplit(self.url, allow_fragments=False)
