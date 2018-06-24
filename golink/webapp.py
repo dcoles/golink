@@ -9,13 +9,9 @@ import aiohttp_jinja2
 import jinja2
 
 from golink.model import Golink
+from golink.persistence import Database
 
 
-DEFAULT_GOLINKS = {
-    'drive': 'http://drive.google.com/',
-    'pylib': 'https://docs.python.org/3/library/',
-    'search': 'https://www.google.com/search?q=',
-}
 # TODO(dcoles) Remove once proper authentication is added
 READONLY = True  # Don't set to false unless in a trusted environment
 
@@ -27,7 +23,10 @@ async def get_index(request):
     """
     query = request.query.get('q', '')
     name = query.split('/', 1)[0]
-    golink = request.app['GOLINKS'].get(name)
+    try:
+        golink = request.app['DATABASE'].find_golink_by_name(name)
+    except KeyError:
+        golink = None
 
     return {'golink_name': name, 'golink_url': golink.url if golink else '', 'readonly': READONLY}
 
@@ -44,9 +43,11 @@ async def post_index(request):
     if missing:
         raise web.HTTPBadRequest(text='Missing required field: {}'.format(' '.join(missing)))
 
-    golink = Golink(post['name'], post['url'])
-    # TODO(dcoles) Add persistent storage
-    request.app['GOLINKS'][golink.name] = golink
+    try:
+        golink = Golink(post['name'].strip(), post['url'].strip())
+    except ValueError as e:
+        raise web.HTTPBadRequest(text='Invalid Golink: {}'.format(e))
+    request.app['DATABASE'].insert_or_replace_golink(golink)
 
     raise web.HTTPFound(request.app.router['index'].url_for().with_query({'q': golink.name}))
 
@@ -56,8 +57,12 @@ async def get_golink(request):
     Handle golink requests.
     """
     name = request.match_info['golink']
-    golink = request.app['GOLINKS'].get(name)
     suffix = request.match_info.get('suffix', '')
+
+    try:
+        golink = request.app['DATABASE'].find_golink_by_name(name)
+    except KeyError:
+        golink = None
 
     if not golink:
         raise web.HTTPFound(request.app.router['index'].url_for().with_query({'q': name}))
@@ -69,6 +74,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-H', '--host', default='localhost')
     parser.add_argument('-P', '--port', type=int, default=8080)
+    parser.add_argument('--database', default=':memory:')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -77,7 +83,7 @@ def main():
         logging.warning('Running in read/write mode. Public edits allowed.')
 
     app = web.Application()
-    app['GOLINKS'] = {name: Golink(name, url) for name, url in DEFAULT_GOLINKS.items()}
+    app['DATABASE'] = Database.connect(args.database)
     aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('golink', 'templates'))
     app.add_routes([
         web.get('/', get_index, name='index'),
