@@ -4,37 +4,26 @@
 import argparse
 import logging
 
+import yarl
 from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 
-from golink.model import Golink
+from golink.model import Golink, validate_name
 from golink.persistence import Database
-
 
 # TODO(dcoles) Remove once proper authentication is added
 READONLY = True  # Don't set to false unless in a trusted environment
 
 
 @aiohttp_jinja2.template('edit.html')
-async def get_index(request):
-    """
-    Handle index requests.
-    """
-    query = request.query.get('q', '')
-    name = query.split('/', 1)[0]
-    try:
-        golink = request.app['DATABASE'].find_golink_by_name(name)
-    except KeyError:
-        golink = None
-
-    return {'golink_name': name, 'golink_url': golink.url if golink else '', 'readonly': READONLY}
+async def get_index(request: web.Request):
+    """Handle index GET requests."""
+    return {'readonly': READONLY}
 
 
-async def post_index(request):
-    """
-    Handle index updates.
-    """
+async def post_index(request: web.Request):
+    """Handle index POST requests."""
     if READONLY:
         raise web.HTTPForbidden()
 
@@ -43,31 +32,84 @@ async def post_index(request):
     if missing:
         raise web.HTTPBadRequest(text='Missing required field: {}'.format(' '.join(missing)))
 
+    name = post['name'].strip()
     try:
-        golink = Golink(post['name'].strip(), post['url'].strip())
+        validate_name(name)
     except ValueError as e:
         raise web.HTTPBadRequest(text='Invalid Golink: {}'.format(e))
-    request.app['DATABASE'].insert_or_replace_golink(golink)
 
-    raise web.HTTPFound(request.app.router['index'].url_for().with_query({'q': golink.name}))
+    raise web.HTTPTemporaryRedirect(url_for_name(request, name))
 
 
-async def get_golink(request):
-    """
-    Handle golink requests.
-    """
-    name = request.match_info['golink']
-    suffix = request.match_info.get('suffix', '')
+@aiohttp_jinja2.template('edit.html')
+async def get_golink(request: web.Request):
+    """Handle GET requests."""
+    name = request.match_info['name']
 
     try:
         golink = request.app['DATABASE'].find_golink_by_name(name)
     except KeyError:
         golink = None
 
-    if not golink:
-        raise web.HTTPFound(request.app.router['index'].url_for().with_query({'q': name}))
+    url = golink.url if golink else ''
+
+    if 'edit' in request.query:
+        # Only edit if no suffix after name (e.g. http://go/name?edit)
+        return {
+            'golink_name': name,
+            'golink_url': url,
+            'readonly': READONLY,
+        }
+    elif not golink:
+        # Redirect to edit view
+        raise web.HTTPFound(url_for_name(request, name).with_query('edit'))
+    else:
+        raise web.HTTPFound(golink.url)
+
+
+@aiohttp_jinja2.template('edit.html')
+async def get_golink_with_suffix(request: web.Request):
+    """Handle GET requests with a suffix."""
+    name = request.match_info['name']
+    suffix = request.match_info['suffix']
+
+    try:
+        golink = request.app['DATABASE'].find_golink_by_name(name)
+    except KeyError:
+        # Redirect to edit view
+        raise web.HTTPFound(url_for_name(request, name).with_query('edit'))
 
     raise web.HTTPFound(golink.with_suffix(suffix))
+
+
+async def post_golink(request: web.Request):
+    """
+    Handle POST requests.
+    """
+    if READONLY:
+        raise web.HTTPForbidden()
+
+    name = request.match_info['name'].strip()
+    post = await request.post()
+
+    missing = [key for key in ('url', ) if key not in post]
+    if missing:
+        raise web.HTTPBadRequest(text='Missing required field: {}'.format(' '.join(missing)))
+
+    url = post['url'].strip()
+
+    try:
+        golink = Golink(name, url)
+    except ValueError as e:
+        raise web.HTTPBadRequest(text='Invalid Golink: {}'.format(e))
+    request.app['DATABASE'].insert_or_replace_golink(golink)
+
+    # Redirect to edit view
+    raise web.HTTPFound(url_for_name(request, name).with_query('edit'))
+
+
+def url_for_name(request: web.Request, name) -> yarl.URL:
+    return request.app.router['golink'].url_for(name=name)
 
 
 def main():
@@ -88,8 +130,9 @@ def main():
     app.add_routes([
         web.get('/', get_index, name='index'),
         web.post('/', post_index),
-        web.get('/{golink}', get_golink),
-        web.get('/{golink}/{suffix:[^{}]*}', get_golink),
+        web.get('/{name}', get_golink, name='golink'),
+        web.get('/{name}/{suffix:[^{}]*}', get_golink_with_suffix, name='golink_with_suffix'),
+        web.post('/{name}', post_golink),
     ])
     web.run_app(app, host=args.host, port=args.port)
 
