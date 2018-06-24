@@ -2,10 +2,11 @@
 # Author: David Coles <coles.david@gmail.com>
 import argparse
 
-import attr
 from aiohttp import web
 import aiohttp_jinja2
 import jinja2
+
+from golink.model import Golink
 
 
 DEFAULT_GOLINKS = {
@@ -14,16 +15,6 @@ DEFAULT_GOLINKS = {
     'search': 'https://www.google.com/search?q=',
 }
 UNSAFE = False  # Don't enable unless in a trusted environment
-
-
-@attr.s
-class Golink:
-    """
-    A golink.
-    """
-    name = attr.ib()
-    url = attr.ib()
-
 
 
 @aiohttp_jinja2.template('index.html')
@@ -67,13 +58,12 @@ async def get_golink(request):
     """
     name = request.match_info['golink']
     golink = request.app['GOLINKS'].get(name)
-    extra = request.match_info.get('extra', '')
+    suffix = request.match_info.get('suffix', '')
 
     if not golink:
         raise web.HTTPFound(request.app.router['index'].url_for().with_query({'q': name}))
 
-    url = golink.url + extra
-    raise web.HTTPFound(url)
+    raise web.HTTPFound(golink.with_suffix(suffix))
 
 
 def main():
@@ -89,7 +79,7 @@ def main():
         web.get('/', get_index, name='index'),
         web.post('/', post_index),
         web.get('/{golink}', get_golink),
-        web.get('/{golink}/{extra:[^{}]*}', get_golink),
+        web.get('/{golink}/{suffix:[^{}]*}', get_golink),
     ])
     web.run_app(app, host=args.host, port=args.port)
 
