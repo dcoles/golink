@@ -1,6 +1,8 @@
-# Golink webapp
-# Author: David Coles <coles.david@gmail.com>
+# Copyright 2018 David Coles <coles.david@gmail.com>
+# This project is licensed under the terms of the MIT license. See LICENSE.txt
+
 import argparse
+import logging
 
 from aiohttp import web
 import aiohttp_jinja2
@@ -68,6 +70,11 @@ def main():
     parser.add_argument('-H', '--host', default='localhost')
     parser.add_argument('-P', '--port', type=int, default=8080)
     args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO)
+
+    if not READONLY:
+        logging.warning('Running in read/write mode. Public edits allowed.')
 
     app = web.Application()
     app['GOLINKS'] = {name: Golink(name, url) for name, url in DEFAULT_GOLINKS.items()}
