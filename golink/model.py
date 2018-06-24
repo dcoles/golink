@@ -6,7 +6,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import attr
 
-NAME_RE = re.compile(r'[a-zA-Z0-9-_]+')
+NAME_RE = re.compile(r'[0-9a-zA-Z._-]+')
 VALID_SCHEMES = {'http', 'https'}
 
 
