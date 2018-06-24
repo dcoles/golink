@@ -136,7 +136,7 @@ def main():
     app = web.Application()
     app['DATABASE'] = Database.connect(args.database)
     aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('golink', 'templates'))
-    app.add_routes([
+    app.router.add_routes([
         web.get('/', get_index, name='index'),
         web.post('/', post_index),
         web.get('/favicon.ico', not_found),
