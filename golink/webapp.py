@@ -9,7 +9,7 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 
-from golink.model import Golink, validate_name
+from golink.model import Golink, validate_name, NAME_RE
 from golink.persistence import Database
 
 # TODO(dcoles) Remove once proper authentication is added
@@ -108,6 +108,15 @@ async def post_golink(request: web.Request):
     raise web.HTTPSeeOther(url_for_name(request, name).with_query('edit'))
 
 
+async def not_found(request: web.Request):
+    raise web.HTTPNotFound()
+
+
+async def get_robots_txt(request: web.Request):
+    # Disallow all robots
+    return web.Response(text='User-agent: *\nDisallow: /\n', content_type='text/plain')
+
+
 def url_for_name(request: web.Request, name) -> yarl.URL:
     return request.app.router['golink'].url_for(name=name)
 
@@ -130,9 +139,11 @@ def main():
     app.add_routes([
         web.get('/', get_index, name='index'),
         web.post('/', post_index),
-        web.get('/{name}', get_golink, name='golink'),
-        web.get('/{name}/{suffix:[^{}]*}', get_golink_with_suffix, name='golink_with_suffix'),
-        web.post('/{name}', post_golink),
+        web.get('/favicon.ico', not_found),
+        web.get('/robots.txt', get_robots_txt),
+        web.get('/{{name:{0}}}'.format(NAME_RE.pattern), get_golink, name='golink'),
+        web.get('/{{name:{0}}}/{{suffix:[^{{}}]*}}'.format(NAME_RE.pattern), get_golink_with_suffix, name='golink_with_suffix'),
+        web.post('/{{name:{0}}}'.format(NAME_RE.pattern), post_golink),
     ])
     web.run_app(app, host=args.host, port=args.port)
 
