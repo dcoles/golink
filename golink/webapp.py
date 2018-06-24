@@ -14,10 +14,11 @@ DEFAULT_GOLINKS = {
     'pylib': 'https://docs.python.org/3/library/',
     'search': 'https://www.google.com/search?q=',
 }
-UNSAFE = False  # Don't enable unless in a trusted environment
+# TODO(dcoles) Remove once proper authentication is added
+READONLY = True  # Don't set to false unless in a trusted environment
 
 
-@aiohttp_jinja2.template('index.html')
+@aiohttp_jinja2.template('edit.html')
 async def get_index(request):
     """
     Handle index requests.
@@ -25,19 +26,15 @@ async def get_index(request):
     query = request.query.get('q', '')
     name = query.split('/', 1)[0]
     golink = request.app['GOLINKS'].get(name)
-    if not golink:
-        return {'golink': {'name': name}}
 
-    return {'golink': attr.asdict(golink)}
+    return {'golink_name': name, 'golink_url': golink.url if golink else '', 'readonly': READONLY}
 
 
 async def post_index(request):
     """
     Handle index updates.
     """
-    # TODO(dcoles) Remove once proper authentication is added
-    if not UNSAFE:
-        # Don't allow modification
+    if READONLY:
         raise web.HTTPForbidden()
 
     post = await request.post()
