@@ -62,7 +62,7 @@ async def get_golink(request: web.Request):
         }
     elif not golink:
         # Redirect to edit view
-        raise web.HTTPFound(url_for_name(request, name).with_query('edit'))
+        raise web.HTTPSeeOther(url_for_name(request, name).with_query('edit'))
     else:
         raise web.HTTPFound(golink.url)
 
@@ -77,7 +77,7 @@ async def get_golink_with_suffix(request: web.Request):
         golink = request.app['DATABASE'].find_golink_by_name(name)
     except KeyError:
         # Redirect to edit view
-        raise web.HTTPFound(url_for_name(request, name).with_query('edit'))
+        raise web.HTTPSeeOther(url_for_name(request, name).with_query('edit'))
 
     raise web.HTTPFound(golink.with_suffix(suffix))
 
@@ -105,7 +105,7 @@ async def post_golink(request: web.Request):
     request.app['DATABASE'].insert_or_replace_golink(golink)
 
     # Redirect to edit view
-    raise web.HTTPFound(url_for_name(request, name).with_query('edit'))
+    raise web.HTTPSeeOther(url_for_name(request, name).with_query('edit'))
 
 
 def url_for_name(request: web.Request, name) -> yarl.URL:
