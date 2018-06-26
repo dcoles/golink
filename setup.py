@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name='golink',
     version='0.0.1',
-    packages=['golink'],
+    packages=['golink', 'golink.templates'],
     url='https://github.com/dcoles/golink',
     license='MIT',
     author='dcoles',
