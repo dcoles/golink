@@ -1,0 +1,9 @@
+# Copyright 2018 David Coles <coles.david@gmail.com>
+# This project is licensed under the terms of the MIT license. See LICENSE.txt
+[Unit]
+Description=Golink server
+
+[Service]
+DynamicUser=yes
+StateDirectory=golink
+ExecStart=/usr/bin/python3 -m golink.webapp --database /var/lib/golink/database.sqlite -H 0.0.0.0 -P 8080
