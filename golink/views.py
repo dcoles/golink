@@ -38,9 +38,10 @@ class GolinkBaseView(web.View):
 class IndexView(GolinkBaseView):
     """Handles index requests."""
 
-    @aiohttp_jinja2.template('edit.html')
+    @aiohttp_jinja2.template('index.html')
     async def get(self):
-        return {'readonly': self.readonly}
+        golinks = list(self.database.golinks())
+        return {'golinks': golinks, 'readonly': self.readonly}
 
     async def post(self):
         if self.readonly:

@@ -1,0 +1,11 @@
+{% import "go.html" as go %}
+<form method="post">
+  <fieldset>
+    <legend>{% if golink_name %}Edit{% else %}Add{% endif %} Golink</legend>
+    <label>go/<input name="name" type="text" title="Short name (must consist only of alphanumeric, dash or underscore characters)" size="10" pattern="[a-zA-Z0-9_-]+" placeholder="shortname" value="{{ golink_name|default("") }}" required{% if readonly %} disabled{% endif %}></label>:
+    <input name="url" type="url" size="30" title="URL (must be http:// or https://)" pattern="https?://.*" placeholder="https://www.example.com/path" value="{{ golink_url|default("") }}" required{% if readonly %} disabled{% endif %}>
+    <button type="submit"{% if readonly %} disabled{% endif %}>Submit</button>
+    {% if golink_url %}<p>{{ go.link({'name': golink_name, 'url': golink_url}) }} (links to {{ golink_url|urlize }})</p>{% endif %}
+    {% if readonly %}<p style="border:solid 1px orange; text-align: center">Read-only mode</p>{% endif %}
+  </fieldset>
+</form>

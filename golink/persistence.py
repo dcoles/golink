@@ -1,5 +1,6 @@
 # Copyright 2018 David Coles <coles.david@gmail.com>
 # This project is licensed under the terms of the MIT license. See LICENSE.txt
+import typing
 
 import attr
 import sqlite3
@@ -16,6 +17,10 @@ class Database:
 
     def __init__(self, con):
         self.con_ = con
+
+    def golinks(self) -> typing.Iterator[Golink]:
+        for row in self.con_.execute('SELECT name, url FROM Golinks ORDER BY name'):
+            yield Golink(*row)
 
     def find_golink_by_name(self, name):
         value = self.con_.execute('SELECT name, url FROM Golinks WHERE name == ?', (name,)).fetchone()

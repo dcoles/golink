@@ -1,0 +1,15 @@
+{% import "go.html" as go %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Golink</title>
+</head>
+<body>
+  {% include "edit_form.html" %}
+  <h2>Golinks</h2>
+  <ul>
+    {% for golink in golinks %}<li>{{ go.link(golink) }}{% if not readonly %} {{ go.edit_link(golink, text='[edit]') }}{% endif %}</li>{% endfor %}
+  </ul>
+</body>
+</html>
