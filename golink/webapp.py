@@ -26,7 +26,7 @@ def main():
     app['DATABASE'] = Database.connect(args.database)
     app['READONLY'] = args.readonly
     aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('golink', 'templates'))
-    app.add_routes(views.routes)
+    app.router.add_routes(views.routes)
 
     if not app['READONLY']:
         logging.warning('Running in read/write mode. Public edits allowed.')
