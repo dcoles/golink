@@ -26,6 +26,10 @@ class GolinkBaseView(web.View):
     def readonly(self):
         return self.request.app.get('READONLY', False)
 
+    def requires_edit_permission(self):
+        if self.readonly:
+            raise web.HTTPForbidden()
+
     @property
     def database(self):
         return self.request.app['DATABASE']
@@ -44,8 +48,7 @@ class IndexView(GolinkBaseView):
         return {'golinks': golinks, 'readonly': self.readonly}
 
     async def post(self):
-        if self.readonly:
-            raise web.HTTPForbidden()
+        self.requires_edit_permission()
 
         post = await self.request.post()
         missing = [key for key in ('name', 'url') if key not in post]
@@ -90,8 +93,7 @@ class GolinkView(GolinkBaseView):
             raise web.HTTPFound(golink.url)
 
     async def post(self):
-        if self.readonly:
-            raise web.HTTPForbidden()
+        self.requires_edit_permission()
 
         name = self.request.match_info['name'].strip()
         post = await self.request.post()
