@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}Golink - Create go/{{ name }}{% endblock %}
+
+{% block content %}
+  {{ go.form(name, legend="Create Golink", disabled=not auth.can_create()) }}
+  {% if not auth.can_create() %}
+  <p class="warning">You do not have permission to create Golinks</p>
+  {% endif %}
+{% endblock %}

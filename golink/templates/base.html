@@ -1,0 +1,14 @@
+{% import "_go.html" as go %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Golink{% endblock %}</title>
+  <style>
+    .warning { border: solid 1px orange; text-align: center; }
+  </style>
+</head>
+<body>
+  <div id="context">{% block content %}{% endblock %}</div>
+</body>
+</html>

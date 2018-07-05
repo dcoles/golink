@@ -8,7 +8,7 @@ from typing import Type
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
 
-from golink import model
+from golink import model, auth
 from golink import views
 
 
@@ -25,10 +25,18 @@ class TestDatabase:
         self.golinks[golink.name] = golink
 
 
+class TestAuth(auth.Auth):
+    USER = 'foo'
+
+    def current_user(self):
+        return self.USER
+
+
 class BaseViewsTestCase(AioHTTPTestCase):
     async def get_application(self):
         app = web.Application()
         app['DATABASE'] = TestDatabase()
+        app['AUTH_TYPE'] = TestAuth
         app.router.add_routes(views.routes)
         return app
 
@@ -36,9 +44,9 @@ class BaseViewsTestCase(AioHTTPTestCase):
     def database(self):
         return self.app['DATABASE']
 
-    def add_golink_url(self, name='test', url='http://example.com/test/'):
+    def add_golink_url(self, name='test', url='http://example.com/test/', owner=TestAuth.USER):
         """Add Golink URL to database."""
-        self.database.insert_or_replace_golink(model.Golink(name, url))
+        self.database.insert_or_replace_golink(model.Golink(name, url, owner))
 
     def assert_status(self, resp: web.Response, status: Type[web.HTTPException]=web.HTTPFound):
         self.assertEqual(status.status_code, resp.status)
@@ -46,7 +54,7 @@ class BaseViewsTestCase(AioHTTPTestCase):
     def assert_location(self, resp: web.Response, location: str='http://example.com/test/'):
         self.assertEqual(location, resp.headers['Location'])
 
-    def assert_database(self, expected: dict={'test': model.Golink('test', 'http://example.com/test/')}):
+    def assert_database(self, expected: dict={'test': model.Golink('test', 'http://example.com/test/', TestAuth.USER)}):
         self.assertEqual(expected, self.database.golinks)
 
     async def get_golink(self, path='/test') -> web.Response:
@@ -97,12 +105,20 @@ class ViewsTestCase(BaseViewsTestCase):
     @unittest_run_loop
     async def test_post_golink_existing(self):
         self.add_golink_url(url='http://example.com/old/')
-        self.assert_database({'test': model.Golink('test', 'http://example.com/old/')})
+        self.assert_database({'test': model.Golink('test', 'http://example.com/old/', TestAuth.USER)})
 
         resp = await self.post_golink()
         self.assert_status(resp, web.HTTPSeeOther)
         self.assert_location(resp, '/test?edit')
         self.assert_database()
+
+    @unittest_run_loop
+    async def test_post_golink_existing_non_owner(self):
+        self.add_golink_url(url='http://example.com/old/', owner='frank')
+
+        resp = await self.post_golink()
+        self.assert_status(resp, web.HTTPForbidden)
+        self.assert_database({'test': model.Golink('test', 'http://example.com/old/', 'frank')})
 
     @unittest_run_loop
     async def test_post_golink_with_suffix(self):
@@ -119,6 +135,27 @@ class ViewsTestCase(BaseViewsTestCase):
         resp = await self.get_golink('/robots.txt')
         self.assert_status(resp, web.HTTPOk)
         self.assertEqual('User-agent: *\nDisallow: /\n', await resp.text())
+
+
+class NullAuthViewsTestCase(BaseViewsTestCase):
+    async def get_application(self):
+        app = await super().get_application()
+        app['AUTH_TYPE'] = auth.NullAuth
+        return app
+
+    @unittest_run_loop
+    async def test_post_golink(self):
+        resp = await self.post_golink()
+        self.assert_status(resp, web.HTTPForbidden)
+        self.assert_database({})
+
+    @unittest_run_loop
+    async def test_post_existing_golink(self):
+        self.add_golink_url(url='http://example.com/old/')
+
+        resp = await self.post_golink()
+        self.assert_status(resp, web.HTTPForbidden)
+        self.assert_database({'test': model.Golink('test', 'http://example.com/old/', TestAuth.USER)})
 
 
 class ReadOnlyViewsTestCase(BaseViewsTestCase):
@@ -139,7 +176,7 @@ class ReadOnlyViewsTestCase(BaseViewsTestCase):
 
         resp = await self.post_golink()
         self.assert_status(resp, web.HTTPForbidden)
-        self.assert_database({'test': model.Golink('test', 'http://example.com/old')})
+        self.assert_database({'test': model.Golink('test', 'http://example.com/old', TestAuth.USER)})
 
 
 if __name__ == '__main__':

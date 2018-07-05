@@ -7,7 +7,7 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 
-from golink import views
+from golink import views, auth
 from golink.persistence import Database
 
 
@@ -16,20 +16,18 @@ def main():
     parser.add_argument('-H', '--host', default='localhost')
     parser.add_argument('-P', '--port', type=int, default=8080)
     parser.add_argument('--database', default=':memory:')
-    # Don't set to unless in a trusted environment
-    parser.add_argument('--noreadonly', action='store_false', dest='readonly', default=True)
+    parser.add_argument('--auth', default='null')
+    parser.add_argument('--readonly', action='store_true')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
 
     app = web.Application()
     app['DATABASE'] = Database.connect(args.database)
+    app['AUTH_TYPE'] = auth.AUTHENTICATORS[args.auth]
     app['READONLY'] = args.readonly
     aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('golink', 'templates'))
     app.router.add_routes(views.routes)
-
-    if not app['READONLY']:
-        logging.warning('Running in read/write mode. Public edits allowed.')
 
     web.run_app(app, host=args.host, port=args.port)
 

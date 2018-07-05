@@ -18,8 +18,8 @@ class Database:
     def __init__(self, con):
         self._con = con
 
-    def golinks(self) -> typing.Iterator[Golink]:
-        for row in self._con.execute('SELECT name, url, owner FROM Golinks ORDER BY name'):
+    def golinks_by_owner(self, owner) -> typing.Iterator[Golink]:
+        for row in self._con.execute('SELECT name, url, owner FROM Golinks WHERE owner=? ORDER BY name', (owner,)):
             yield Golink(*row)
 
     def find_golink_by_name(self, name):

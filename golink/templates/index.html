@@ -1,16 +1,15 @@
-{% import "_go.html" as go %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Golink</title>
-</head>
-<body>
-  {{ go.form(legend="Add Golink", disabled=readonly) }}
-  {% if readonly %}<p style="border:solid 1px orange; text-align: center">Read-only mode</p>{% endif %}
-  <h2>Golinks</h2>
+{% extends "base.html" %}
+
+{% block content %}
+  <form method="post">
+    <fieldset>
+      <legend>Search Golinks</legend>
+      <label>go/<input name="name" type="text" title="Short name (must consist only of alphanumeric, dash or underscore characters)" size="10" pattern="[a-zA-Z0-9_-]+" placeholder="shortname" required></label>
+      <button type="submit">Search</button>
+    </fieldset>
+  </form>
+  <h2>Your Golinks</h2>
   <ul>
-    {% for golink in golinks %}<li>{{ go.link(golink) }}{% if not readonly %} {{ go.edit_link(golink, text='[edit]') }}{% endif %}</li>{% else %}No links yet!{% endfor %}
+    {% for golink in golinks %}<li>{{ go.link(golink) }}{% if auth.can_edit(golink) %} {{ go.edit_link(golink, text='[edit]') }}{% endif %}</li>{% else %}No links yet!{% endfor %}
   </ul>
-</body>
-</html>
+{% endblock %}
