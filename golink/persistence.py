@@ -16,14 +16,14 @@ class Database:
         return cls(con)
 
     def __init__(self, con):
-        self.con_ = con
+        self._con = con
 
     def golinks(self) -> typing.Iterator[Golink]:
-        for row in self.con_.execute('SELECT name, url FROM Golinks ORDER BY name'):
+        for row in self._con.execute('SELECT name, url, owner FROM Golinks ORDER BY name'):
             yield Golink(*row)
 
     def find_golink_by_name(self, name):
-        value = self.con_.execute('SELECT name, url FROM Golinks WHERE name == ?', (name,)).fetchone()
+        value = self._con.execute('SELECT name, url, owner FROM Golinks WHERE name == ?', (name,)).fetchone()
         if value is None:
             raise KeyError(name)
         return Golink(*value)
@@ -32,5 +32,5 @@ class Database:
         if not isinstance(golink, Golink):
             raise TypeError('Golink required')
 
-        with self.con_:
-            self.con_.execute('INSERT OR REPLACE INTO Golinks VALUES(?, ?)', attr.astuple(golink))
+        with self._con:
+            self._con.execute('INSERT OR REPLACE INTO Golinks VALUES(?, ?, ?)', attr.astuple(golink))

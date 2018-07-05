@@ -36,6 +36,7 @@ class Golink:
     """A Golink."""
     name = attr.ib(validator=lambda _, __, v: validate_name(v))
     url = attr.ib(validator=lambda _, __, v: validate_url(v))
+    owner = attr.ib(default=None)
 
     def with_suffix(self, suffix=''):
         base_url = urlsplit(self.url, allow_fragments=False)
