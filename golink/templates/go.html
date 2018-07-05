@@ -1,7 +1,0 @@
-{% macro link(golink) -%}
-  <a title="{{ golink.url }}" href="{{ url('golink', name=golink.name) }}">go/{{ golink.name }}</a>
-{%- endmacro %}
-
-{% macro edit_link(golink, text='') -%}
-  <a title="go/{{ golink.name }}?edit" href="{{ url('golink', name=golink.name, query_='edit') }}">{% if text %}{{ text }}{% else %}go/{{ golink.name }}?edit{% endif %}</a>
-{%- endmacro %}

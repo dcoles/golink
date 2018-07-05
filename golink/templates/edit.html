@@ -1,3 +1,4 @@
+{% import "_go.html" as go %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,6 @@
   <title>Edit Golink</title>
 </head>
 <body>
-  {% include "edit_form.html" %}
+  {{ go.form(golink_name, golink_url, legend="Edit Golink", disabled=readonly) }}
 </body>
 </html>

@@ -1,4 +1,4 @@
-{% import "go.html" as go %}
+{% import "_go.html" as go %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,10 +6,11 @@
   <title>Golink</title>
 </head>
 <body>
-  {% include "edit_form.html" %}
+  {{ go.form(legend="Add Golink", disabled=readonly) }}
+  {% if readonly %}<p style="border:solid 1px orange; text-align: center">Read-only mode</p>{% endif %}
   <h2>Golinks</h2>
   <ul>
-    {% for golink in golinks %}<li>{{ go.link(golink) }}{% if not readonly %} {{ go.edit_link(golink, text='[edit]') }}{% endif %}</li>{% endfor %}
+    {% for golink in golinks %}<li>{{ go.link(golink) }}{% if not readonly %} {{ go.edit_link(golink, text='[edit]') }}{% endif %}</li>{% else %}No links yet!{% endfor %}
   </ul>
 </body>
 </html>
