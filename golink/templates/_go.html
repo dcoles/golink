@@ -1,5 +1,5 @@
 {% macro link(golink) -%}
-  <a title="{{ golink.url }}" href="{{ url('golink', name=golink.name) }}">go/{{ golink.name }}</a>
+  <a title="{{ golink.url }}" href="{{ url('golink', name=golink.name) }}" rel="noreferrer">go/{{ golink.name }}</a>
 {%- endmacro %}
 
 {% macro edit_link(golink, text='') -%}
