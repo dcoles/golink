@@ -8,12 +8,17 @@ import attr
 
 NAME_RE = re.compile(r'[0-9a-zA-Z._-]+')
 VALID_SCHEMES = {'http', 'https'}
+MAX_NAME_LENGTH = 120
+MAX_URL_LENGTH = 2000
 
 
 def validate_name(name):
     """Validate a Golink name."""
     if not name:
         raise ValueError('Name is required')
+
+    if len(name) > MAX_NAME_LENGTH:
+        raise ValueError('Name can not be longer than {} characters'.format(MAX_NAME_LENGTH))
 
     if not NAME_RE.fullmatch(name):
         raise ValueError('Name must match {}'.format(NAME_RE.pattern))
@@ -23,6 +28,9 @@ def validate_url(url):
     """Validate a Golink URL."""
     if not url:
         raise ValueError('URL is required')
+
+    if len(url) > MAX_URL_LENGTH:
+        raise ValueError('URL can not be longer than {} characters'.format(MAX_URL_LENGTH))
 
     split = urlsplit(url)
     if split.scheme not in VALID_SCHEMES:
