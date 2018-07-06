@@ -34,6 +34,17 @@ Here are some links you can try:
 - [go/search/Hello+World](http://go.dcoles.net/search/Hello+World) Google Search for `Hello World`
 
 
+## History
+
+Golinks are something I encountered while working as a Google SRE and found terribly useful. Clearly many ex-Googlers have also
+agreed, with the same basic idea having been [re-implemented for use in many large tech companies](https://twitter.com/isaach/status/668645946717147136).
+
+Here's a list of some known public implementations:
+
+- https://github.com/kellegous/go (go-lang, MIT License)
+- https://goatcodes.com (Golinks as-a-service)
+
+
 ## License
 
 [MIT License](LICENSE.txt)
