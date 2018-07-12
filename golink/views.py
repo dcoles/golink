@@ -46,6 +46,11 @@ class GolinkBaseView(web.View):
     def database(self) -> persistence.Database:
         return self.request.app['DATABASE']
 
+    @property
+    def name(self):
+        """Golink name from URL."""
+        return self.request.match_info['name'].lower()
+
     def render_template(self, name, context):
         full_context = dict({'auth': self.auth}, **context)
         return aiohttp_jinja2.render_template(name, self.request, full_context)
@@ -71,7 +76,7 @@ class IndexView(GolinkBaseView):
         if missing:
             raise web.HTTPBadRequest(text='Missing required field: {}'.format(' '.join(missing)))
 
-        name = post['name'].strip()
+        name = post['name'].lower()
         try:
             validate_name(name)
         except ValueError as e:
@@ -85,7 +90,7 @@ class EditView(GolinkBaseView):
     """Handles editing Golinks."""
 
     async def get(self):
-        name = self.request.match_info['name']
+        name = self.name
 
         try:
             golink = self.database.find_golink_by_name(name)
@@ -97,7 +102,7 @@ class EditView(GolinkBaseView):
     async def post(self):
         self.require_authentication()
 
-        name = self.request.match_info['name'].strip()
+        name = self.name
         post = await self.request.post()
 
         missing = [key for key in ('url', ) if key not in post]
@@ -130,7 +135,7 @@ class GolinkView(GolinkBaseView):
     """Handles bare Golinks (e.g. go/name)."""
 
     async def get(self):
-        name = self.request.match_info['name']
+        name = self.name
 
         try:
             golink = self.database.find_golink_by_name(name)
@@ -146,7 +151,7 @@ class GolinkWithSuffixView(GolinkBaseView):
     """Handles Golinks with a suffix (e.g. go/name/suffix)."""
 
     async def get(self):
-        name = self.request.match_info['name']
+        name = self.name
         suffix = self.request.match_info['suffix']
 
         try:
