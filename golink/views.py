@@ -53,6 +53,9 @@ class GolinkBaseView(web.View):
     def url_for_name(self, name) -> yarl.URL:
         return self.request.app.router['golink'].url_for(name=name)
 
+    def url_for_edit(self, name) -> yarl.URL:
+        return self.request.app.router['edit'].url_for(name=name)
+
 
 @routes.view('/')
 class IndexView(GolinkBaseView):
@@ -77,9 +80,9 @@ class IndexView(GolinkBaseView):
         raise web.HTTPSeeOther(self.url_for_name(name).with_query('edit'))
 
 
-@routes.view('/{{name:{0}}}'.format(NAME_RE.pattern), name='golink')
-class GolinkView(GolinkBaseView):
-    """Handles bare Golinks (e.g. go/name)."""
+@routes.view('/+edit/{{name:{0}}}'.format(NAME_RE.pattern), name='edit')
+class EditView(GolinkBaseView):
+    """Handles editing Golinks."""
 
     async def get(self):
         name = self.request.match_info['name']
@@ -87,19 +90,9 @@ class GolinkView(GolinkBaseView):
         try:
             golink = self.database.find_golink_by_name(name)
         except KeyError:
-            golink = None
+            return self.render_template('create.html', {'name': name})
 
-        if 'edit' in self.request.query:
-            # Only edit if no suffix after name (e.g. http://go/name?edit)
-            if golink:
-                return self.render_template('edit.html', {'golink': golink})
-            else:
-                return self.render_template('create.html', {'name': name})
-        elif not golink:
-            # Redirect to edit view
-            raise web.HTTPSeeOther(self.url_for_name(name).with_query('edit'))
-        else:
-            raise web.HTTPFound(golink.url)
+        return self.render_template('edit.html', {'golink': golink})
 
     async def post(self):
         self.require_authentication()
@@ -129,7 +122,23 @@ class GolinkView(GolinkBaseView):
         self.database.insert_or_replace_golink(golink)
 
         # Redirect to edit view
-        raise web.HTTPSeeOther(self.url_for_name(name).with_query('edit'))
+        raise web.HTTPSeeOther(self.url_for_edit(name))
+
+
+@routes.view('/{{name:{0}}}'.format(NAME_RE.pattern), name='golink')
+class GolinkView(GolinkBaseView):
+    """Handles bare Golinks (e.g. go/name)."""
+
+    async def get(self):
+        name = self.request.match_info['name']
+
+        try:
+            golink = self.database.find_golink_by_name(name)
+        except KeyError:
+            # Redirect to edit view
+            raise web.HTTPSeeOther(self.url_for_edit(name))
+
+        raise web.HTTPFound(golink.url)
 
 
 @routes.view('/{{name:{0}}}/{{suffix:[^{{}}]*}}'.format(NAME_RE.pattern), name='golink_with_suffix')
@@ -144,6 +153,6 @@ class GolinkWithSuffixView(GolinkBaseView):
             golink = self.database.find_golink_by_name(name)
         except KeyError:
             # Redirect to edit view
-            raise web.HTTPSeeOther(self.url_for_name(name).with_query('edit'))
+            raise web.HTTPSeeOther(self.url_for_edit(name))
 
         raise web.HTTPFound(golink.with_suffix(suffix))

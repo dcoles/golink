@@ -3,7 +3,7 @@
 {%- endmacro %}
 
 {% macro edit_link(golink, text='') -%}
-  <a title="go/{{ golink.name }}?edit" href="{{ url('golink', name=golink.name, query_='edit') }}">{% if text %}{{ text }}{% else %}go/{{ golink.name }}?edit{% endif %}</a>
+  <a title="go/+edit/{{ golink.name }}" href="{{ url('edit', name=golink.name) }}">{% if text %}{{ text }}{% else %}go/{{ golink.name }}?edit{% endif %}</a>
 {%- endmacro %}
 
 {% macro form(name, url=undefined, owner=None, legend=None, disabled=False) %}

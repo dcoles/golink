@@ -60,7 +60,7 @@ class BaseViewsTestCase(AioHTTPTestCase):
     async def get_golink(self, path='/test') -> web.Response:
         return await self.client.request('GET', path, allow_redirects=False)
 
-    async def post_golink(self, path='/test', url='http://example.com/test/') -> web.Response:
+    async def post_golink(self, path='/+edit/test', url='http://example.com/test/') -> web.Response:
         return await self.client.request('POST', path, data={'url': url}, allow_redirects=False)
 
 
@@ -77,7 +77,7 @@ class ViewsTestCase(BaseViewsTestCase):
     async def test_unknown_golink_redirect(self):
         resp = await self.get_golink()
         self.assert_status(resp, web.HTTPSeeOther)
-        self.assert_location(resp, '/test?edit')
+        self.assert_location(resp, '/+edit/test')
 
     @unittest_run_loop
     async def test_golink_with_path_redirect(self):
@@ -99,7 +99,7 @@ class ViewsTestCase(BaseViewsTestCase):
     async def test_post_golink(self):
         resp = await self.post_golink()
         self.assert_status(resp, web.HTTPSeeOther)
-        self.assert_location(resp, '/test?edit')
+        self.assert_location(resp, '/+edit/test')
         self.assert_database()
 
     @unittest_run_loop
@@ -109,7 +109,7 @@ class ViewsTestCase(BaseViewsTestCase):
 
         resp = await self.post_golink()
         self.assert_status(resp, web.HTTPSeeOther)
-        self.assert_location(resp, '/test?edit')
+        self.assert_location(resp, '/+edit/test')
         self.assert_database()
 
     @unittest_run_loop
