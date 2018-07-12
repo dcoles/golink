@@ -12,7 +12,7 @@ class Database:
     @classmethod
     def connect(cls, database):
         con = sqlite3.connect(database)
-        con.execute('CREATE TABLE IF NOT EXISTS Golinks (name STRING PRIMARY KEY, url STRING)')
+        con.execute('CREATE TABLE IF NOT EXISTS Golinks (name VARCHAR PRIMARY KEY, url VARCHAR NOT NULL, owner VARCHAR)')
         return cls(con)
 
     def __init__(self, con):
