@@ -42,7 +42,7 @@ def validate_url(url):
 @attr.s
 class Golink:
     """A Golink."""
-    name = attr.ib(validator=lambda _, __, v: validate_name(v))
+    name = attr.ib(validator=lambda _, __, v: validate_name(v), convert=str.lower)
     url = attr.ib(validator=lambda _, __, v: validate_url(v))
     owner = attr.ib(default=None)
 

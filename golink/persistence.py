@@ -23,7 +23,7 @@ class Database:
             yield Golink(*row)
 
     def find_golink_by_name(self, name):
-        value = self._con.execute('SELECT name, url, owner FROM Golinks WHERE name == ?', (name,)).fetchone()
+        value = self._con.execute('SELECT name, url, owner FROM Golinks WHERE name == ?', (name.lower(),)).fetchone()
         if value is None:
             raise KeyError(name)
         return Golink(*value)
