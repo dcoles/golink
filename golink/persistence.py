@@ -23,10 +23,10 @@ class Database:
             yield Golink(*row)
 
     def search(self, name_or_url, limit=1000):
-        name_like = '%{}%'.format(name_or_url)  # Partial match
-        url_like = '{}%'.format(name_or_url)  # Prefix match
-        for row in self._con.execute('SELECT name, url, owner FROM Golinks WHERE name LIKE ? OR url LIKE ? LIMIT ?',
-                                     (name_like, url_like, limit)):
+        name_glob = '*{}*'.format(name_or_url)  # Partial match
+        url_glob = '{}*'.format(name_or_url)  # Prefix match
+        for row in self._con.execute('SELECT name, url, owner FROM Golinks WHERE name GLOB ? OR url GLOB ? LIMIT ?',
+                                     (name_glob, url_glob, limit)):
             yield Golink(*row)
 
     def find_golink_by_name(self, name):
