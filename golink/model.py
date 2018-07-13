@@ -45,6 +45,7 @@ class Golink:
     name = attr.ib(validator=lambda _, __, v: validate_name(v), convert=str.lower)
     url = attr.ib(validator=lambda _, __, v: validate_url(v))
     owner = attr.ib(default=None)
+    visits = attr.ib(type=int, default=0)
 
     def with_suffix(self, suffix=''):
         base_url = urlsplit(self.url, allow_fragments=False)

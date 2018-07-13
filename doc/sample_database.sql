@@ -1,7 +1,11 @@
 -- Sample database
 -- Run `sqlite3 database '.read sample_database.sql'` to create.
 
-CREATE TABLE IF NOT EXISTS Golinks (name VARCHAR PRIMARY KEY COLLATE NOCASE, url VARCHAR NOT NULL, owner VARCHAR);
+CREATE TABLE IF NOT EXISTS Golinks (
+  name VARCHAR PRIMARY KEY COLLATE NOCASE,
+  url VARCHAR NOT NULL,
+  owner VARCHAR,
+  visits INT DEFAULT 0);
 
 INSERT OR REPLACE INTO Golinks (name, url) VALUES ('link', 'https://github.com/dcoles/golink/');
 INSERT OR REPLACE INTO Golinks (name, url) VALUES ('github', 'https://github.com');

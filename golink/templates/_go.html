@@ -6,7 +6,7 @@
   <a title="go/+edit/{{ golink.name }}" href="{{ url('edit', name=golink.name) }}">{% if text %}{{ text }}{% else %}go/{{ golink.name }}?edit{% endif %}</a>
 {%- endmacro %}
 
-{% macro form(name, url=undefined, owner=None, legend=None, disabled=False) %}
+{% macro form(name, url=undefined, owner=None, visits=None, legend=None, disabled=False) %}
   <form method="post">
     <fieldset{% if disabled %} disabled{% endif %}>
       {% if legend %}<legend>{{ legend }}</legend>{% endif %}
@@ -14,6 +14,7 @@
       <input name="url" type="url" size="30" title="URL (must be http:// or https://)" pattern="https?://.*" placeholder="https://www.example.com/path" value="{{ url|default("") }}" autofocus required>
       <button type="submit">Submit</button>
       {% if owner %}<p>Created by: {{ owner }}</p>{% endif %}
+      {% if visits is not none %}<p>Visits: {{ visits }}</p>{% endif %}
     </fieldset>
   </form>
 {% endmacro %}

@@ -9,7 +9,11 @@
   {% if golinks %}
     <h2>Results</h2>
     <ul>
-    {% for golink in golinks %}<li>{{ go.link(golink) }} &rarr; {{ golink.url|urlize }}{% if auth.can_edit(golink) %} {{ go.edit_link(golink, text='[edit]') }}{% endif %}</li>{% else %}No results!{% endfor %}
+    {% for golink in golinks %}
+      <li>{{ go.link(golink) }} &rarr; {{ golink.url|urlize }}{% if auth.can_edit(golink) %} {{ go.edit_link(golink, text='[edit]') }} ({{ golink.visits }} visits){% endif %}</li>
+    {% else %}
+      No results!
+    {% endfor %}
     </ul>
   {% endif %}
 {% endblock %}
