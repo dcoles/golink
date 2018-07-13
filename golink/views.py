@@ -51,7 +51,7 @@ class GolinkBaseView(web.View):
         """Golink name from URL."""
         return self.request.match_info['name'].lower()
 
-    def render_template(self, name, context):
+    def render_template(self, name, context={}):
         full_context = dict({'auth': self.auth}, **context)
         return aiohttp_jinja2.render_template(name, self.request, full_context)
 
@@ -82,7 +82,19 @@ class IndexView(GolinkBaseView):
         except ValueError as e:
             raise web.HTTPBadRequest(text='Invalid Golink: {}'.format(e))
 
-        raise web.HTTPSeeOther(self.url_for_name(name).with_query('edit'))
+        raise web.HTTPSeeOther(self.url_for_edit(name))
+
+@routes.view('/+search', name='search')
+class SearchView(GolinkBaseView):
+    """Handles searching Golinks."""
+
+    async def get(self):
+        query = self.request.query.get('q')
+
+        if not query:
+            return self.render_template('search.html')
+
+        return self.render_template('search.html', {'query': query, 'golinks': self.database.search(query)})
 
 
 @routes.view('/+edit/{{name:{0}}}'.format(NAME_RE.pattern), name='edit')

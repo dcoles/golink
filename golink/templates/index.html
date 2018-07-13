@@ -1,13 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <form method="post">
-    <fieldset>
-      <legend>Lookup Golink</legend>
-      <label>go/<input name="name" type="text" title="Short name (must consist only of alphanumeric, dash or underscore characters)" size="10" pattern="[a-zA-Z0-9_-]+" placeholder="shortname" autofocus required></label>
-      <button type="submit">Lookup</button>
-    </fieldset>
-  </form>
+  {% include "_createedit_form.html" %}
+  {% include "_search_form.html" %}
   {% if auth.can_create() %}
   <h2>Your Golinks</h2>
   <ul>

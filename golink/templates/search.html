@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Golink - go/+search{% endblock %}
+
+{% block breadcrumb %}<li><a href="{{ url('search') }}">+search</a></li>{% endblock %}
+
+{% block content %}
+  {% include "_search_form.html" %}
+  {% if golinks %}
+    <h2>Results</h2>
+    <ul>
+    {% for golink in golinks %}<li>{{ go.link(golink) }} &rarr; {{ golink.url|urlize }}{% if auth.can_edit(golink) %} {{ go.edit_link(golink, text='[edit]') }}{% endif %}</li>{% else %}No results!{% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}

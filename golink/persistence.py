@@ -22,6 +22,13 @@ class Database:
         for row in self._con.execute('SELECT name, url, owner FROM Golinks WHERE owner=? ORDER BY name', (owner,)):
             yield Golink(*row)
 
+    def search(self, name_or_url, limit=1000):
+        name_like = '%{}%'.format(name_or_url)  # Partial match
+        url_like = '{}%'.format(name_or_url)  # Prefix match
+        for row in self._con.execute('SELECT name, url, owner FROM Golinks WHERE name LIKE ? OR url LIKE ? LIMIT ?',
+                                     (name_like, url_like, limit)):
+            yield Golink(*row)
+
     def find_golink_by_name(self, name):
         value = self._con.execute('SELECT name, url, owner FROM Golinks WHERE name == ?', (name.lower(),)).fetchone()
         if value is None:
