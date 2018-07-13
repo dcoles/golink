@@ -12,7 +12,7 @@ class Database:
     @classmethod
     def connect(cls, database):
         con = sqlite3.connect(database)
-        con.execute('CREATE TABLE IF NOT EXISTS Golinks (name VARCHAR PRIMARY KEY, url VARCHAR NOT NULL, owner VARCHAR)')
+        con.execute('CREATE TABLE IF NOT EXISTS Golinks (name VARCHAR PRIMARY KEY COLLATE NOCASE, url VARCHAR NOT NULL, owner VARCHAR)')
         return cls(con)
 
     def __init__(self, con):
@@ -30,7 +30,7 @@ class Database:
             yield Golink(*row)
 
     def find_golink_by_name(self, name):
-        value = self._con.execute('SELECT name, url, owner FROM Golinks WHERE name == ?', (name.lower(),)).fetchone()
+        value = self._con.execute('SELECT name, url, owner FROM Golinks WHERE name == ?', (name,)).fetchone()
         if value is None:
             raise KeyError(name)
         return Golink(*value)
