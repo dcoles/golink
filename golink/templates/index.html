@@ -3,10 +3,16 @@
 {% block content %}
   {% include "_createedit_form.html" %}
   {% include "_search_form.html" %}
+  {% include "_readme.html" %}
+
   {% if auth.can_create() %}
   <h2>Your Golinks</h2>
   <ul>
-    {% for golink in golinks %}<li>{{ go.link(golink) }}{% if auth.can_edit(golink) %} {{ go.edit_link(golink, text='[edit]') }}{% endif %}</li>{% else %}No links yet!{% endfor %}
+    {% for golink in golinks %}
+      <li>{{ go.link(golink) }}{% if auth.can_edit(golink) %} {{ go.edit_link(golink, text='[edit]') }}{% endif %}</li>
+    {% else %}
+      No links yet!
+    {% endfor %}
   </ul>
   {% endif %}
 {% endblock %}

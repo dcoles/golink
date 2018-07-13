@@ -26,7 +26,7 @@ def main():
     app['DATABASE'] = Database.connect(args.database)
     app['AUTH_TYPE'] = auth.AUTHENTICATORS[args.auth]
     app['READONLY'] = args.readonly
-    aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('golink', 'templates'))
+    aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('golink', 'templates'), trim_blocks=True, lstrip_blocks=True)
     app.router.add_routes(views.routes)
 
     web.run_app(app, host=args.host, port=args.port)

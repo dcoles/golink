@@ -5,7 +5,7 @@
 {% block breadcrumb %}<li><a href="{{ url('edit', name=name) }}">+edit/{{ name }}</a></li>{% endblock %}
 
 {% block content %}
-  {{ go.form(name, legend="Create Golink", disabled=not auth.can_create()) }}
+  {{ go.form(name, legend="Create", disabled=not auth.can_create()) }}
   {% if not auth.can_create() %}
   <p class="warning">You do not have permission to create Golinks</p>
   {% endif %}

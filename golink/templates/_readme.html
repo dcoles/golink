@@ -1,0 +1,10 @@
+{#- README file included on the index page -#}
+<p>Golinks allow assigning a short name for a URL prefix:</p>
+<ul>
+  <li><a href="/example">go/example</a> &rarr; {{ 'http://example.com/foo/'|urlize }}</li>
+</ul>
+<p>Once created, anything placed after the name will be appended to the resulting URL used for the redirect:</p>
+<ul>
+  <li><a href="/example/bar">go/example/bar</a> → {{ 'http://example.com/foo/bar'|urlize }} (<code>http://example.com/foo/</code> + <code>bar</code>)</li>
+  <li><a href="/example#test">go/example#test</a> → {{ 'http://example.com/foo/#test'|urlize }} (<code>http://example.com/foo/</code> + <code>#test</code>)</li>
+</ul>
