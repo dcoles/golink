@@ -6,10 +6,14 @@
   <title>{% block title %}Golink{% endblock %}</title>
   <style>
     .warning { border: solid 1px orange; text-align: center; }
+    ul.breadcrumb { padding: 0; list-style: none; }
+    ul.breadcrumb li { display: inline; }
+    ul.breadcrumb li+li:before { padding: 0.2em; content: "\0203a"; }
     #footer { font-size: smaller; }
   </style>
 </head>
 <body>
+  <div id="header"><ul class="breadcrumb"><li><a href="/">go</a></li>{% block breadcrumb %}{% endblock %}</ul></div>
   <div id="context">{% block content %}{% endblock %}</div>
   <hr>
   <div id="footer"><a href="https://github.com/dcoles/golink" rel="noreferrer">Golink server on GitHub</a></div>

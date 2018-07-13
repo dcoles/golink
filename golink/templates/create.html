@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Golink - Create go/{{ name }}{% endblock %}
+{% block title %}Golink - go/+edit/{{ name }}{% endblock %}
+
+{% block breadcrumb %}<li><a href="{{ url('edit', name=name) }}">+edit/{{ name }}</a></li>{% endblock %}
 
 {% block content %}
   {{ go.form(name, legend="Create Golink", disabled=not auth.can_create()) }}
