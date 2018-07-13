@@ -11,7 +11,7 @@
     <fieldset{% if disabled %} disabled{% endif %}>
       {% if legend %}<legend>{{ legend }}</legend>{% endif %}
       {{ link({'name': name, 'url': url}) }}:
-      <input name="url" type="url" size="30" title="URL (must be http:// or https://)" pattern="https?://.*" placeholder="https://www.example.com/path" value="{{ url|default("") }}" required>
+      <input name="url" type="url" size="30" title="URL (must be http:// or https://)" pattern="https?://.*" placeholder="https://www.example.com/path" value="{{ url|default("") }}" autofocus required>
       <button type="submit">Submit</button>
       {% if owner %}<p>Created by: {{ owner }}</p>{% endif %}
     </fieldset>
