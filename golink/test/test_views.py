@@ -16,15 +16,15 @@ class TestDatabase:
     def __init__(self):
         self.golinks = {}
 
-    def find_by_name(self, name: str):
+    async def find_by_name(self, name: str):
         logging.info('find_by_name: %s', name)
         return self.golinks[name]
 
-    def insert_or_replace(self, golink: model.Golink):
+    async def insert_or_replace(self, golink: model.Golink):
         logging.info('insert_or_replace: %s', golink)
         self.golinks[golink.name] = golink
 
-    def increment_visit(self, golink: model.Golink):
+    async def increment_visit(self, golink: model.Golink):
         logging.info('increment_visit: %s', golink)
         self.golinks[golink.name].visits += 1
 
@@ -48,9 +48,9 @@ class BaseViewsTestCase(AioHTTPTestCase):
     def database(self):
         return self.app['DATABASE']
 
-    def add_golink_url(self, name='test', url='http://example.com/test/', owner=TestAuth.USER):
+    async def add_golink_url(self, name='test', url='http://example.com/test/', owner=TestAuth.USER):
         """Add Golink URL to database."""
-        self.database.insert_or_replace(model.Golink(name, url, owner))
+        await self.database.insert_or_replace(model.Golink(name, url, owner))
 
     def assert_status(self, resp: web.Response, status: Type[web.HTTPException]=web.HTTPFound):
         self.assertEqual(status.status_code, resp.status)
@@ -74,7 +74,7 @@ class BaseViewsTestCase(AioHTTPTestCase):
 class ViewsTestCase(BaseViewsTestCase):
     @unittest_run_loop
     async def test_golink_redirect(self):
-        self.add_golink_url()
+        await self.add_golink_url()
 
         resp = await self.get_golink()
         self.assert_status(resp)
@@ -88,7 +88,7 @@ class ViewsTestCase(BaseViewsTestCase):
 
     @unittest_run_loop
     async def test_golink_with_path_redirect(self):
-        self.add_golink_url()
+        await self.add_golink_url()
 
         resp = await self.get_golink('/test/foo')
         self.assert_status(resp)
@@ -97,7 +97,7 @@ class ViewsTestCase(BaseViewsTestCase):
 
     @unittest_run_loop
     async def test_golink_with_partial_path_redirect(self):
-        self.add_golink_url(url='http://example.com/foo')
+        await self.add_golink_url(url='http://example.com/foo')
 
         resp = await self.get_golink('/test/bar')
         self.assert_status(resp)
@@ -106,7 +106,7 @@ class ViewsTestCase(BaseViewsTestCase):
 
     @unittest_run_loop
     async def test_multiple_visits(self):
-        self.add_golink_url()
+        await self.add_golink_url()
         self.assert_visits(0)
 
         for visit in range(1, 11):
@@ -123,7 +123,7 @@ class ViewsTestCase(BaseViewsTestCase):
 
     @unittest_run_loop
     async def test_post_golink_existing(self):
-        self.add_golink_url(url='http://example.com/old/')
+        await self.add_golink_url(url='http://example.com/old/')
         self.assert_database({'test': model.Golink('test', 'http://example.com/old/', TestAuth.USER)})
 
         resp = await self.post_golink()
@@ -133,7 +133,7 @@ class ViewsTestCase(BaseViewsTestCase):
 
     @unittest_run_loop
     async def test_post_golink_existing_non_owner(self):
-        self.add_golink_url(url='http://example.com/old/', owner='frank')
+        await self.add_golink_url(url='http://example.com/old/', owner='frank')
 
         resp = await self.post_golink()
         self.assert_status(resp, web.HTTPForbidden)
@@ -170,7 +170,7 @@ class NullAuthViewsTestCase(BaseViewsTestCase):
 
     @unittest_run_loop
     async def test_post_existing_golink(self):
-        self.add_golink_url(url='http://example.com/old/')
+        await self.add_golink_url(url='http://example.com/old/')
 
         resp = await self.post_golink()
         self.assert_status(resp, web.HTTPForbidden)
@@ -191,7 +191,7 @@ class ReadOnlyViewsTestCase(BaseViewsTestCase):
 
     @unittest_run_loop
     async def test_post_existing_golink(self):
-        self.add_golink_url(url='http://example.com/old')
+        await self.add_golink_url(url='http://example.com/old')
 
         resp = await self.post_golink()
         self.assert_status(resp, web.HTTPForbidden)

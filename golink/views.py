@@ -67,7 +67,7 @@ class IndexView(GolinkBaseView):
     """Handles index requests."""
 
     async def get(self):
-        golinks = list(self.database.find_by_owner(self.auth.current_user()))
+        golinks = list(await self.database.find_by_owner(self.auth.current_user()))
         return self.render_template('index.html', {'golinks': golinks})
 
     async def post(self):
@@ -94,7 +94,7 @@ class SearchView(GolinkBaseView):
         if not query:
             return self.render_template('search.html')
 
-        return self.render_template('search.html', {'query': query, 'golinks': self.database.search(query)})
+        return self.render_template('search.html', {'query': query, 'golinks': await self.database.search(query)})
 
 
 @routes.view('/+edit/{{name:{0}}}'.format(NAME_RE.pattern), name='edit')
@@ -105,7 +105,7 @@ class EditView(GolinkBaseView):
         name = self.name
 
         try:
-            golink = self.database.find_by_name(name)
+            golink = await self.database.find_by_name(name)
         except KeyError:
             return self.render_template('create.html', {'name': name})
 
@@ -122,7 +122,7 @@ class EditView(GolinkBaseView):
             raise web.HTTPBadRequest(text='Missing required field: {}'.format(' '.join(missing)))
 
         try:
-            current_golink = self.database.find_by_name(name)
+            current_golink = await self.database.find_by_name(name)
         except KeyError:
             if not self.auth.can_create():
                 raise web.HTTPForbidden()
@@ -136,7 +136,7 @@ class EditView(GolinkBaseView):
             golink = Golink(name, url, self.auth.current_user())
         except ValueError as e:
             raise web.HTTPBadRequest(text='Invalid Golink: {}'.format(e))
-        self.database.insert_or_replace(golink)
+        await self.database.insert_or_replace(golink)
 
         # Redirect to edit view
         raise web.HTTPSeeOther(self.url_for_edit(name))
@@ -150,12 +150,12 @@ class GolinkView(GolinkBaseView):
         name = self.name
 
         try:
-            golink = self.database.find_by_name(name)
+            golink = await self.database.find_by_name(name)
         except KeyError:
             # Redirect to edit view
             raise web.HTTPSeeOther(self.url_for_edit(name))
 
-        self.database.increment_visit(golink)
+        await self.database.increment_visit(golink)
         raise web.HTTPFound(golink.url)
 
 
@@ -168,10 +168,10 @@ class GolinkWithSuffixView(GolinkBaseView):
         suffix = self.request.match_info['suffix']
 
         try:
-            golink = self.database.find_by_name(name)
+            golink = await self.database.find_by_name(name)
         except KeyError:
             # Redirect to edit view
             raise web.HTTPSeeOther(self.url_for_edit(name))
 
-        self.database.increment_visit(golink)
+        await self.database.increment_visit(golink)
         raise web.HTTPFound(golink.with_suffix(suffix))
