@@ -10,7 +10,7 @@
     <h2>Results</h2>
     <ul>
     {% for golink in golinks %}
-      <li>{{ go.link(golink) }}{% if auth.can_edit(golink) %} {{ go.edit_link(golink, text='[edit]') }}{% endif %} &rarr; {{ golink.url|urlize }} ({{ golink.visits }} visits)</li>
+      <li>{{ go.link(golink) }}{% if auth.can_edit(golink) %} {{ go.edit_link(golink, text='[edit]') }}{% endif %} &rarr; <a rel="noreferrer" href="{{ golink.url }}">{{ golink.url|truncate(70, True) }}</a> ({{ golink.visits }} visits)</li>
     {% else %}
       No results!
     {% endfor %}
