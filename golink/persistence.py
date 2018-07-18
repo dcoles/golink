@@ -26,6 +26,7 @@ LIMIT :limit
 '''
 INSERT_OR_REPLACE_SQL = 'INSERT OR REPLACE INTO Golinks VALUES(?, ?, ?, ?)'
 INCREMENT_SQL = 'UPDATE Golinks SET visits = visits + 1 WHERE name=:name'
+DELETE_SQL = 'DELETE FROM Golinks WHERE name=:name'
 
 
 def _loop_run_in_executor(func):
@@ -78,9 +79,11 @@ class Database:
             self._con.execute(INSERT_OR_REPLACE_SQL, attr.astuple(golink))
 
     @_loop_run_in_executor
-    def increment_visit(self, golink):
-        if not isinstance(golink, Golink):
-            raise TypeError('Golink required')
-
+    def increment_visits(self, name):
         with self._con:
-            self._con.execute(INCREMENT_SQL, dict(name=golink.name))
+            self._con.execute(INCREMENT_SQL, dict(name=name))
+
+    @_loop_run_in_executor
+    def delete(self, name):
+        with self._con:
+            self._con.execute(DELETE_SQL, dict(name=name))

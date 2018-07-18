@@ -24,9 +24,9 @@ class TestDatabase:
         logging.info('insert_or_replace: %s', golink)
         self.golinks[golink.name] = golink
 
-    async def increment_visit(self, golink: model.Golink):
-        logging.info('increment_visit: %s', golink)
-        self.golinks[golink.name].visits += 1
+    async def increment_visits(self, name: str):
+        logging.info('increment_visits: %s', name)
+        self.golinks[name].visits += 1
 
 
 class TestAuth(auth.Auth):

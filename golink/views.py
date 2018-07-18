@@ -130,13 +130,17 @@ class EditView(GolinkBaseView):
             if not self.auth.can_edit(current_golink):
                 raise web.HTTPForbidden()
 
+        action = post.get('action')
         url = post['url'].strip()
 
-        try:
-            golink = Golink(name, url, self.auth.current_user())
-        except ValueError as e:
-            raise web.HTTPBadRequest(text='Invalid Golink: {}'.format(e))
-        await self.database.insert_or_replace(golink)
+        if action == "delete":
+            await self.database.delete(name)
+        else:
+            try:
+                golink = Golink(name, url, self.auth.current_user())
+            except ValueError as e:
+                raise web.HTTPBadRequest(text='Invalid Golink: {}'.format(e))
+            await self.database.insert_or_replace(golink)
 
         # Redirect to edit view
         raise web.HTTPSeeOther(self.url_for_edit(name))
@@ -155,7 +159,7 @@ class GolinkView(GolinkBaseView):
             # Redirect to edit view
             raise web.HTTPSeeOther(self.url_for_edit(name))
 
-        await self.database.increment_visit(golink)
+        await self.database.increment_visits(name)
         raise web.HTTPFound(golink.url)
 
 
@@ -173,5 +177,5 @@ class GolinkWithSuffixView(GolinkBaseView):
             # Redirect to edit view
             raise web.HTTPSeeOther(self.url_for_edit(name))
 
-        await self.database.increment_visit(golink)
+        await self.database.increment_visits(name)
         raise web.HTTPFound(golink.with_suffix(suffix))
