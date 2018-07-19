@@ -18,7 +18,7 @@
       {% else %}
         <button type="submit">Create</button>
       {% endif %}
-      {% if owner %}<p>Created by: {{ owner }}</p>{% endif %}
+      {% if owner %}<p>Created by: <code>{{ owner }}</code></p>{% endif %}
       {% if visits is not none %}<p>Visits: {{ visits }}</p>{% endif %}
     </fieldset>
   </form>
