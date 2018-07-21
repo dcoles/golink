@@ -1,8 +1,8 @@
 # Copyright 2018 David Coles <coles.david@gmail.com>
 # This project is licensed under the terms of the MIT license. See LICENSE.txt
 import argparse
-import asyncio
 import logging
+import pkg_resources
 
 from aiohttp import web
 import aiohttp_jinja2
@@ -29,6 +29,7 @@ def main():
     app['READONLY'] = args.readonly
     aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('golink', 'templates'), trim_blocks=True, lstrip_blocks=True)
     app.router.add_routes(views.routes)
+    app.router.add_static('/+static', pkg_resources.resource_filename('golink', 'static'))
 
     web.run_app(app, host=args.host, port=args.port)
 
