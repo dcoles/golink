@@ -55,6 +55,17 @@ class GolinkBaseView(web.View):
         full_context = dict({'auth': self.auth}, **context)
         return aiohttp_jinja2.render_template(name, self.request, full_context)
 
+    async def handle_golink(self, name, suffix=None):
+        try:
+            golink = await self.database.find_by_name(name)
+        except KeyError:
+            # Redirect to edit view
+            raise web.HTTPSeeOther(self.url_for_edit(name))
+
+        await self.database.increment_visits(name)
+        url = golink.with_suffix(suffix) if suffix else golink.url
+        raise web.HTTPFound(url)
+
     def url_for_name(self, name) -> yarl.URL:
         return self.request.app.router['golink'].url_for(name=name)
 
@@ -151,16 +162,7 @@ class GolinkView(GolinkBaseView):
     """Handles bare Golinks (e.g. go/name)."""
 
     async def get(self):
-        name = self.name
-
-        try:
-            golink = await self.database.find_by_name(name)
-        except KeyError:
-            # Redirect to edit view
-            raise web.HTTPSeeOther(self.url_for_edit(name))
-
-        await self.database.increment_visits(name)
-        raise web.HTTPFound(golink.url)
+        return await self.handle_golink(self.name)
 
 
 @routes.view('/{{name:{0}}}/{{suffix:[^{{}}]*}}'.format(NAME_RE.pattern), name='golink_with_suffix')
@@ -168,14 +170,4 @@ class GolinkWithSuffixView(GolinkBaseView):
     """Handles Golinks with a suffix (e.g. go/name/suffix)."""
 
     async def get(self):
-        name = self.name
-        suffix = self.request.match_info['suffix']
-
-        try:
-            golink = await self.database.find_by_name(name)
-        except KeyError:
-            # Redirect to edit view
-            raise web.HTTPSeeOther(self.url_for_edit(name))
-
-        await self.database.increment_visits(name)
-        raise web.HTTPFound(golink.with_suffix(suffix))
+        return await self.handle_golink(self.name, self.request.match_info['suffix'])
