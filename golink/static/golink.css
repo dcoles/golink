@@ -5,3 +5,4 @@ ul.breadcrumb { padding: 0; list-style: none; }
 ul.breadcrumb li { display: inline; }
 ul.breadcrumb li+li:before { padding: 0.2em; content: "\0203a"; }
 #footer { font-size: smaller; }
+input { width: 100%; }
