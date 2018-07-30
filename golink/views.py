@@ -101,10 +101,12 @@ class GolinkBaseView(web.View):
         raise web.HTTPFound(url)
 
     def url_for_name(self, name) -> yarl.URL:
-        return self.request.app.router['golink'].url_for(name=name)
+        validate_name(name)
+        return self.request.app.router['golink'].url_for(path=name)
 
     def url_for_edit(self, name) -> yarl.URL:
-        return self.request.app.router['edit'].url_for(name=name)
+        validate_name(name)
+        return self.request.app.router['edit'].url_for(path=name)
 
 
 @routes.view('/')
