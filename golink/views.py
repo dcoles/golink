@@ -42,6 +42,21 @@ class GolinkBaseView(web.View):
         if not self.auth.authenticated:
             raise web.HTTPForbidden()
 
+    def require_fields(self, fields, required):
+        """
+        Require fields.
+
+        :param fields: Mapping of fields sent by client.
+        :param required: List of required fields.
+        :return: Values of required fields.
+        :throws web.HTTPBadRequest: If require field is missing
+        """
+        missing = [key for key in required if key not in fields or not fields[key]]
+        if missing:
+            raise web.HTTPBadRequest(text='Missing required field(s): {}'.format(' '.join(missing)))
+
+        return tuple(fields[key] for key in required)
+
     @property
     def database(self) -> persistence.Database:
         return self.request.app['DATABASE']
@@ -119,11 +134,9 @@ class IndexView(GolinkBaseView):
 
     async def post(self):
         post = await self.request.post()
-        missing = [key for key in ('name',) if key not in post]
-        if missing:
-            raise web.HTTPBadRequest(text='Missing required field: {}'.format(' '.join(missing)))
+        name, = self.require_fields(post, ('name',))
 
-        name = post['name'].lower()
+        name = name.lower()
         try:
             validate_name(name)
         except ValueError as e:
@@ -145,7 +158,6 @@ class SearchView(GolinkBaseView):
         return self.render_template('search.html', {'query': query, 'golinks': await self.database.search(query)})
 
 
-
 @routes.view('/+edit/{path}', name='edit')
 class EditView(GolinkBaseView):
     """View for editing Golinks."""
@@ -163,9 +175,7 @@ class EditView(GolinkBaseView):
 
         post = await self.request.post()
 
-        missing = [key for key in ('url', ) if key not in post]
-        if missing:
-            raise web.HTTPBadRequest(text='Missing required field: {}'.format(' '.join(missing)))
+        url, = self.require_fields(post, ('url',))
 
         try:
             current_golink = await self.database.find_by_name(self.name)
@@ -177,7 +187,6 @@ class EditView(GolinkBaseView):
                 raise web.HTTPForbidden()
 
         action = post.get('action')
-        url = post['url'].strip()
 
         if action == "delete":
             await self.database.delete(self.name)
