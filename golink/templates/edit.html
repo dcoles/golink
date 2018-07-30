@@ -2,7 +2,7 @@
 
 {% block title %}Golink - go/+edit/{{ golink.name }}{% endblock %}
 
-{% block breadcrumb %}<li><a href="{{ url('edit', name=golink.name) }}">+edit/{{ golink.name }}</a></li>{% endblock %}
+{% block breadcrumb %}<li><a href="{{ url('edit', path=golink.name) }}">+edit/{{ golink.name }}</a></li>{% endblock %}
 
 {% block content %}
   {{ go.form(golink.name, golink.url, golink.owner, golink.visits, legend="Edit", disabled=not auth.can_edit(golink)) }}

@@ -48,8 +48,42 @@ class GolinkBaseView(web.View):
 
     @property
     def name(self):
-        """Golink name from URL."""
-        return self.request.match_info['name'].lower()
+        """Get Golink name from path."""
+        if 'name' not in self.request:
+            self.set_request_name_and_suffix_from_path()
+
+        return self.request['name']
+
+    @property
+    def suffix(self):
+        if 'suffix' not in self.request:
+            self.set_request_name_and_suffix_from_path()
+
+        return self.request['suffix']
+
+    def set_request_name_and_suffix_from_path(self):
+        """Get Golink name and optional suffix from path."""
+        path = self.request.match_info['path']
+        self.request['name'], self.request['suffix'] = self.split_path(path)
+
+    def split_path(self, path):
+        """Split a Golink path into name and optional suffix."""
+        try:
+            name, suffix = path.split('/', 1)
+        except ValueError:
+            name, suffix = path, ''
+
+        return name.lower(), suffix
+
+    def validate_name(self):
+        """Validate name.
+
+        :raises web.HTTPNotFound: if name is invalid.
+        """
+        try:
+            validate_name(self.name)
+        except ValueError:
+            raise web.HTTPNotFound(text=f'Invalid Golink name. Must match {NAME_RE.pattern}')
 
     def render_template(self, name, context={}):
         full_context = dict({'auth': self.auth}, **context)
@@ -95,6 +129,7 @@ class IndexView(GolinkBaseView):
 
         raise web.HTTPSeeOther(self.url_for_edit(name))
 
+
 @routes.view('/+search', name='search')
 class SearchView(GolinkBaseView):
     """Handles searching Golinks."""
@@ -108,24 +143,22 @@ class SearchView(GolinkBaseView):
         return self.render_template('search.html', {'query': query, 'golinks': await self.database.search(query)})
 
 
-@routes.view('/+edit/{{name:{0}}}'.format(NAME_RE.pattern), name='edit')
+
+@routes.view('/+edit/{path}', name='edit')
 class EditView(GolinkBaseView):
-    """Handles editing Golinks."""
+    """View for editing Golinks."""
 
     async def get(self):
-        name = self.name
-
         try:
-            golink = await self.database.find_by_name(name)
+            golink = await self.database.find_by_name(self.name)
         except KeyError:
-            return self.render_template('create.html', {'name': name})
+            return self.render_template('create.html', {'name': self.name})
 
         return self.render_template('edit.html', {'golink': golink})
 
     async def post(self):
         self.require_authentication()
 
-        name = self.name
         post = await self.request.post()
 
         missing = [key for key in ('url', ) if key not in post]
@@ -133,7 +166,7 @@ class EditView(GolinkBaseView):
             raise web.HTTPBadRequest(text='Missing required field: {}'.format(' '.join(missing)))
 
         try:
-            current_golink = await self.database.find_by_name(name)
+            current_golink = await self.database.find_by_name(self.name)
         except KeyError:
             if not self.auth.can_create():
                 raise web.HTTPForbidden()
@@ -145,29 +178,22 @@ class EditView(GolinkBaseView):
         url = post['url'].strip()
 
         if action == "delete":
-            await self.database.delete(name)
+            await self.database.delete(self.name)
         else:
             try:
-                golink = Golink(name, url, self.auth.current_user())
+                golink = Golink(self.name, url, self.auth.current_user())
             except ValueError as e:
                 raise web.HTTPBadRequest(text='Invalid Golink: {}'.format(e))
             await self.database.insert_or_replace(golink)
 
         # Redirect to edit view
-        raise web.HTTPSeeOther(self.url_for_edit(name))
+        raise web.HTTPSeeOther(self.url_for_edit(self.name))
 
 
-@routes.view('/{{name:{0}}}'.format(NAME_RE.pattern), name='golink')
+@routes.view('/{path:[^{}+][^{}]*}', name='golink')
 class GolinkView(GolinkBaseView):
-    """Handles bare Golinks (e.g. go/name)."""
+    """View for Golinks (matches any path that does not begin with `/+`)."""
 
     async def get(self):
-        return await self.handle_golink(self.name)
-
-
-@routes.view('/{{name:{0}}}/{{suffix:[^{{}}]*}}'.format(NAME_RE.pattern), name='golink_with_suffix')
-class GolinkWithSuffixView(GolinkBaseView):
-    """Handles Golinks with a suffix (e.g. go/name/suffix)."""
-
-    async def get(self):
-        return await self.handle_golink(self.name, self.request.match_info['suffix'])
+        self.validate_name()
+        return await self.handle_golink(self.name, self.suffix)
