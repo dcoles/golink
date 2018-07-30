@@ -5,6 +5,9 @@
 {% block breadcrumb %}<li><a href="{{ url('edit', path=golink.name) }}">+edit/{{ golink.name }}</a></li>{% endblock %}
 
 {% block content %}
+  {% with search_edit=True %}
+    {% include "_search_form.html" %}
+  {% endwith %}
   {{ go.form(golink.name, golink.url, golink.owner, golink.visits, legend="Edit", disabled=not auth.can_edit(golink)) }}
   {% if not auth.can_edit(golink) %}
   <p class="warning">You do not have permission to edit this Golink</p>

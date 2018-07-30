@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-  {% include "_search_form.html" %}
+  {% with search_autofocus=True %}
+    {% include "_search_form.html" %}
+  {% endwith %}
   {% include "_readme.html" %}
 
   {% if auth.can_create() %}

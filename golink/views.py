@@ -168,7 +168,7 @@ class SearchView(GolinkBaseView):
         post = await self.request.post()
 
         action, query = self.require_fields(post, ('action', 'q'))
-        if action == 'go':
+        if action in ('go', 'edit'):
             u = urlsplit(query)
             name, suffix = self.split_path(u.path)
             try:
@@ -177,7 +177,11 @@ class SearchView(GolinkBaseView):
                 validate_name(name)
             except ValueError as e:
                 raise web.HTTPBadRequest(text=f'Invalid Golink name: {e}')
-            raise web.HTTPSeeOther(self.url_for_name(name, suffix).with_fragment(u.fragment))
+            if action == 'edit':
+                url = self.url_for_edit(name)
+            else:
+                url = self.url_for_name(name, suffix).with_fragment(u.fragment)
+            raise web.HTTPSeeOther(url)
         elif action == 'search':
             raise web.HTTPSeeOther(self.url_for_search(query))
         else:

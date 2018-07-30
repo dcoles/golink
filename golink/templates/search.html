@@ -5,7 +5,9 @@
 {% block breadcrumb %}<li><a href="{{ url('search') }}">+search</a></li>{% endblock %}
 
 {% block content %}
-  {% include "_search_form.html" %}
+  {% with search_autofocus=True %}
+    {% include "_search_form.html" %}
+  {% endwith %}
   {% if golinks %}
     <h2>Results</h2>
     <ul>
