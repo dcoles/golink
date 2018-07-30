@@ -1,8 +1,11 @@
 # Copyright 2018 David Coles <coles.david@gmail.com>
 # This project is licensed under the terms of the MIT license. See LICENSE.txt
+from urllib.parse import urlsplit
+
 import aiohttp_jinja2
 import yarl
 from aiohttp import web
+import posixpath
 
 from golink import auth
 from golink import persistence
@@ -97,8 +100,8 @@ class GolinkBaseView(web.View):
         """
         try:
             validate_name(self.name)
-        except ValueError:
-            raise web.HTTPNotFound(text=f'Invalid Golink name. Must match {NAME_RE.pattern}')
+        except ValueError as e:
+            raise web.HTTPNotFound(text=f'Invalid Golink name: {e}')
 
     def render_template(self, name, context={}):
         full_context = dict({'auth': self.auth}, **context)
@@ -115,13 +118,17 @@ class GolinkBaseView(web.View):
         url = golink.with_suffix(suffix) if suffix else golink.url
         raise web.HTTPFound(url)
 
-    def url_for_name(self, name) -> yarl.URL:
+    def url_for_name(self, name, suffix=None) -> yarl.URL:
         validate_name(name)
-        return self.request.app.router['golink'].url_for(path=name)
+        path = posixpath.join(name, suffix) if suffix else name
+        return self.request.app.router['golink'].url_for(path=path)
 
     def url_for_edit(self, name) -> yarl.URL:
         validate_name(name)
         return self.request.app.router['edit'].url_for(path=name)
+
+    def url_for_search(self, query) -> yarl.URL:
+        return self.request.app.router['search'].url_for().with_query({'q': query})
 
 
 @routes.view('/')
@@ -156,6 +163,25 @@ class SearchView(GolinkBaseView):
             return self.render_template('search.html')
 
         return self.render_template('search.html', {'query': query, 'golinks': await self.database.search(query)})
+
+    async def post(self):
+        post = await self.request.post()
+
+        action, query = self.require_fields(post, ('action', 'q'))
+        if action == 'go':
+            u = urlsplit(query)
+            name, suffix = self.split_path(u.path)
+            try:
+                if u.scheme or u.hostname:
+                    raise ValueError('Must not be a full URL')
+                validate_name(name)
+            except ValueError as e:
+                raise web.HTTPBadRequest(text=f'Invalid Golink name: {e}')
+            raise web.HTTPSeeOther(self.url_for_name(name, suffix).with_fragment(u.fragment))
+        elif action == 'search':
+            raise web.HTTPSeeOther(self.url_for_search(query))
+        else:
+            raise web.HTTPBadRequest(text='`action` must be either "go" or "search"')
 
 
 @routes.view('/+edit/{path}', name='edit')

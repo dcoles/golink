@@ -70,6 +70,9 @@ class BaseViewsTestCase(AioHTTPTestCase):
     async def post_golink(self, path='/+edit/test', url='http://example.com/test/') -> web.Response:
         return await self.client.request('POST', path, data={'url': url}, allow_redirects=False)
 
+    async def post_search(self, path='/+search', action='search', q='test'):
+        return await self.client.request('POST', path, data={'action': action, 'q': q}, allow_redirects=False)
+
 
 class ViewsTestCase(BaseViewsTestCase):
     @unittest_run_loop
@@ -196,6 +199,43 @@ class ReadOnlyViewsTestCase(BaseViewsTestCase):
         resp = await self.post_golink()
         self.assert_status(resp, web.HTTPForbidden)
         self.assert_database({'test': model.Golink('test', 'http://example.com/old', TestAuth.USER)})
+
+
+class SearchViewsTestCase(BaseViewsTestCase):
+    """Tests for the /+search view."""
+
+    @unittest_run_loop
+    async def test_post_search(self):
+        resp = await self.post_search()
+        self.assert_status(resp, web.HTTPSeeOther)
+        self.assert_location(resp, '/+search?q=test')
+
+    @unittest_run_loop
+    async def test_post_go(self):
+        resp = await self.post_search(action='go')
+        self.assert_status(resp, web.HTTPSeeOther)
+        self.assert_location(resp, '/test')
+
+    @unittest_run_loop
+    async def test_post_go_with_suffix(self):
+        await self.add_golink_url()
+
+        resp = await self.post_search(action='go', q='test/x')
+        self.assert_status(resp, web.HTTPSeeOther)
+        self.assert_location(resp, '/test/x')
+
+    @unittest_run_loop
+    async def test_post_go_with_fragment(self):
+        await self.add_golink_url()
+
+        resp = await self.post_search(action='go', q='test#x')
+        self.assert_status(resp, web.HTTPSeeOther)
+        self.assert_location(resp, '/test#x')
+
+    @unittest_run_loop
+    async def test_post_go_url(self):
+        resp = await self.post_search(action='go', q='http://www.example.com/foo')
+        self.assert_status(resp, web.HTTPBadRequest)
 
 
 if __name__ == '__main__':

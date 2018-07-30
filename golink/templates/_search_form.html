@@ -1,7 +1,8 @@
-<form action="/+search" method="get">
+<form action="/+search" method="post">
   <fieldset>
     <legend>Search</legend>
-    <input type="search" placeholder="shortname or URL" name="q" value="{{ query }}" autofocus>
-    <button type="submit">Search</button>
+    go/<input type="search" name="q" placeholder="shortname or URL" title="Short name (must consist only of alphanumeric, dash or underscore characters)" pattern="[a-zA-Z0-9#_-]+(/.*)?" maxlength="2000" value="{{ query }}" autofocus required>
+    <button type="submit" name="action" value="go">Go</button>
+    <button type="submit" name="action" value="search" formnovalidate>Search</button>
   </fieldset>
 </form>
