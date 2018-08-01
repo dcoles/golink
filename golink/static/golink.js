@@ -27,7 +27,6 @@ window.onload = evt => {
         let golinks = [];
         if (query) {
             let results = await fetchSuggestions(query);
-            console.log(results);
             golinks = results.golinks;
         }
 
