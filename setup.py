@@ -12,7 +12,7 @@ setup(
     author_email='coles.david@gmail.com',
     description='A server for creating customized HTTP redirects.',
     package_data={
-        'golink': ['templates/*.html', 'static/*.css'],
+        'golink': ['templates/*.html', 'static/*.css', 'static/*.js'],
     },
     zip_safe=False,
 )
