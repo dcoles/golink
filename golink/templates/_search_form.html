@@ -1,8 +1,9 @@
 <form action="/+search" method="post">
   <fieldset>
     <legend>Search</legend>
-    go/{% if search_edit %}+edit/{% endif %}<input type="search" name="q" placeholder="shortname" title="Short name (must consist only of alphanumeric, dash or underscore characters)" pattern="[a-zA-Z0-9#_-]+(/.*)?" maxlength="2000" value="{{ query }}" required{% if search_autofocus %} autofocus{% endif %}>
+    go/{% if search_edit %}+edit/{% endif %}<input type="search" name="q" placeholder="shortname" title="Short name (must consist only of alphanumeric, dash or underscore characters)" pattern="[a-zA-Z0-9#_-]+(/.*)?" maxlength="2000" value="{{ query }}" list="search_datalist" autocomplete="off" required{% if search_autofocus %} autofocus{% endif %}>
     <button type="submit" name="action" value="{{ "edit" if search_edit else "go" }}">Go</button>
     <button type="submit" name="action" value="search" formnovalidate>Search</button>
+    <datalist id="search_datalist"></datalist>
   </fieldset>
 </form>

@@ -3,6 +3,7 @@
 from urllib.parse import urlsplit
 
 import aiohttp_jinja2
+import attr
 import yarl
 from aiohttp import web
 import posixpath
@@ -157,12 +158,20 @@ class SearchView(GolinkBaseView):
     """Handles searching Golinks."""
 
     async def get(self):
+        accept = self.request.headers.get('Accept')
         query = self.request.query.get('q')
 
-        if not query:
-            return self.render_template('search.html')
+        if query:
+            golinks = await self.database.search(query)
+        else:
+            golinks = {}
 
-        return self.render_template('search.html', {'query': query, 'golinks': await self.database.search(query)})
+        if accept == 'application/json':
+            headers = {'Cache-Control': 'private, max-age=60'}
+            results = {'golinks': [attr.asdict(g) for g in golinks]}
+            return web.json_response(results, headers=headers)
+        else:
+            return self.render_template('search.html', {'query': query, 'golinks': golinks})
 
     async def post(self):
         post = await self.request.post()
