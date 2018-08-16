@@ -1,3 +1,5 @@
+const MAX_DISPLAY_LENGTH = 70;
+
 async function fetchSuggestions(current) {
     let headers = new Headers();
     headers.append('Accept', 'application/json');
@@ -8,6 +10,15 @@ async function fetchSuggestions(current) {
 }
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+/** Truncate string if greater than `maxLength`. **/
+function truncate(str, maxLength) {
+    if (str.length > maxLength) {
+        // HORIZONTAL ELLIPSIS (U+2026)
+        return str.slice(0, maxLength) + "\u2026";
+    }
+    return str;
+}
 
 window.onload = evt => {
     document.querySelector('input[type=search]').addEventListener('input', async (evt) => {
@@ -33,8 +44,10 @@ window.onload = evt => {
         let datalist = document.createElement('datalist');
         datalist.id = 'search_datalist';
         for (let golink of golinks) {
+            let url = truncate(golink.url, MAX_DISPLAY_LENGTH);
+
             // \u21D2 (double-right arrow - &rArr;)
-            datalist.appendChild(new Option(`${golink.name} \u21D2 ${golink.url}`, golink.name));
+            datalist.appendChild(new Option(`${golink.name} \u21D2 ${url}`, golink.name));
         }
 
         // Switch out old datalist with new one
