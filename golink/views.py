@@ -10,7 +10,7 @@ import posixpath
 
 from golink import auth
 from golink import persistence
-from golink.model import Golink, validate_name, NAME_RE
+from golink.model import Golink, validate_name
 
 routes = web.RouteTableDef()
 

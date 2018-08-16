@@ -3,3 +3,4 @@ aiohttp_jinja2
 attrs
 jinja2
 setuptools
+pymongo[srv]
