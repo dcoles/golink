@@ -17,6 +17,15 @@ If you configure your local DNS server to include the Golink server as `go`, the
 [http://go/example](http://go/example) directly in your browser without needing to provide the fully qualified domain
  name (FQDN) of the server.
 
+## Usage
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip3 install --upgrade pip
+pip3 install -r requirements.txt
+PYTHONPATH=`pwd`:$PYTHONPATH python3 golink/webapp.py --auth anonymous --database golinks.sqlite
+```
 
 ## Demo
 
