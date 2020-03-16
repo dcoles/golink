@@ -22,9 +22,8 @@ If you configure your local DNS server to include the Golink server as `go`, the
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip3 install --upgrade pip
 pip3 install -r requirements.txt
-python3  -m golink.webapp --auth anonymous --database golinks.sqlite
+python3 -m golink.webapp --auth anonymous --database golinks.sqlite
 ```
 
 ## Demo
